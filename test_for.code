@@ -1,0 +1,12 @@
+int x;
+int v;
+
+{
+    x = 1;
+    v = 5;
+
+    for (x <= v) {
+        print x * x;
+        x = x + 1;
+    }
+}
