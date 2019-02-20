@@ -62,7 +62,11 @@ extern int yydebug;
     INT_TYPE = 272,
     ID = 273,
     VAL = 274,
-    IF_ALONE = 275
+    IF_ALONE = 275,
+    INC = 276,
+    DEC = 277,
+    INCX = 278,
+    DECX = 279
   };
 #endif
 /* Tokens.  */
@@ -84,6 +88,10 @@ extern int yydebug;
 #define ID 273
 #define VAL 274
 #define IF_ALONE 275
+#define INC 276
+#define DEC 277
+#define INCX 278
+#define DECX 279
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
@@ -103,7 +111,7 @@ union YYSTYPE
   } type;
   struct stmt *stmt;
 
-#line 107 "y.tab.h" /* yacc.c:1909  */
+#line 115 "y.tab.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

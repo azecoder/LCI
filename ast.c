@@ -114,7 +114,12 @@ void print_stmt(struct stmt *stmt, int indent) {
     case STMT_FOR:
       print_indent(indent);
       printf("for (");
+      printf("%s = ", string_int_rev(&global_ids, stmt->for_.id));
+      print_expr(stmt->for_.expr);
+      printf(";\n");
       print_expr(stmt->for_.cond);
+      printf(";\n");
+      print_expr(stmt->for_.expr1);
       printf(") {\n");
       print_stmt(stmt->for_.body, indent + 1);
       print_indent(indent);
@@ -323,10 +328,14 @@ struct stmt* make_while(struct expr *e, struct stmt *body) {
   return r;
 }
 
-struct stmt* make_for(struct expr *e, struct stmt *body) {
+struct stmt* make_for(size_t id, struct expr *e, struct expr *c, struct expr *e1, struct stmt *body) {
+  make_assign(id, e);
   struct stmt* r = malloc(sizeof(struct stmt));
   r->type = STMT_FOR;
-  r->for_.cond = e;
+  r->for_.id = id;
+  r->for_.expr = e;
+  r->for_.cond = c;
+  r->for_.expr1 = e1;
   r->for_.body = body;
   return r;
 }
@@ -411,6 +420,8 @@ int valid_stmt(struct stmt *stmt) {
         check_types(stmt->ifelse.cond) == BOOLEAN &&
         valid_stmt(stmt->ifelse.if_body) &&
         (stmt->ifelse.else_body == NULL || valid_stmt(stmt->ifelse.else_body));
+    default:
+      return 0;
   }
 }
 
@@ -492,6 +503,7 @@ void codegen_stmt(struct stmt *stmt, LLVMModuleRef module, LLVMBuilderRef builde
       break;
     }
 
+    // I have a bug in this case.. After checking condition must calculate body and last expr
     case STMT_FOR: {
       LLVMValueRef func = LLVMGetBasicBlockParent(LLVMGetInsertBlock(builder));
       LLVMBasicBlockRef cond_bb = LLVMAppendBasicBlock(func, "cond");
@@ -506,6 +518,7 @@ void codegen_stmt(struct stmt *stmt, LLVMModuleRef module, LLVMBuilderRef builde
 
       LLVMPositionBuilderAtEnd(builder, body_bb);
       codegen_stmt(stmt->for_.body, module, builder);
+      codegen_expr(stmt->for_.expr1, module, builder);
       LLVMBuildBr(builder, cond_bb);
 
       LLVMPositionBuilderAtEnd(builder, cont_bb);

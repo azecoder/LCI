@@ -66,8 +66,11 @@ struct stmt {
       struct stmt *body;
     } while_; // for type == STMT_WHILE
     struct {
+      size_t id;
+      struct expr *expr;
       struct expr *cond;
       struct stmt *body;
+      struct expr *expr1;
     } for_; // for type == STMT_FOR
     struct {
       struct expr *expr;
@@ -78,7 +81,7 @@ struct stmt {
 struct stmt* make_seq(struct stmt *fst, struct stmt *snd);
 struct stmt* make_assign(size_t id, struct expr *e);
 struct stmt* make_while(struct expr *e, struct stmt *body);
-struct stmt* make_for(struct expr *e, struct stmt *body);
+struct stmt* make_for(size_t id, struct expr *e, struct expr *c, struct expr *e1, struct stmt *body);
 struct stmt* make_ifelse(struct expr *e, struct stmt *if_body, struct stmt *else_body);
 struct stmt* make_if(struct expr *e, struct stmt *body);
 struct stmt* make_print(struct expr *e);

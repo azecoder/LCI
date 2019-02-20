@@ -50,6 +50,7 @@
 %nonassoc ELSE
 %left GE LE EQ NE '>' '<'
 %left AND OR
+%left INC DEC INCX DECX
 %left '+' '-'
 %left '*' '/'
 
@@ -90,7 +91,11 @@ stmt: '{' stmts '}'                         { $$ = $2; }
       | IF '(' expr ')' stmt %prec IF_ALONE { $$ = make_if($3, $5); }
       | IF '(' expr ')' stmt ELSE stmt      { $$ = make_ifelse($3, $5, $7); }
       | WHILE '(' expr ')' stmt             { $$ = make_while($3, $5); }
-      | FOR '(' expr ')' stmt               { $$ = make_for($3, $5); }
+      | FOR '(' ID '=' expr ';' expr ';' expr ')' stmt { $$ = make_for($3, $5, $7, $9, $11); }
+      | ID INC ';'                          { $$ = make_assign($1, binop(variable($1), '+', literal(1))); }
+      | ID DEC ';'                          { $$ = make_assign($1, binop(variable($1), '-', literal(1))); }
+      | ID INCX expr ';'                     { $$ = make_assign($1, binop(variable($1), '+', $3)); }
+      | ID DECX expr ';'                     { $$ = make_assign($1, binop(variable($1), '-', $3)); }
       | PRINT expr ';'                      { $$ = make_print($2); }
 
 expr: VAL             { $$ = literal($1); }

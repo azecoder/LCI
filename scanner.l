@@ -28,6 +28,10 @@ false              { return FALSE; }
 [-*/+><=;\{\}\(\)] { return *yytext; }
 &&                 { return AND; }
 \|\|               { return OR; }
+\++                { return INC; }
+--                 { return DEC; }
+\+=                 { return INCX; }
+-=                 { return DECX; }
 \>=                { return GE; }
 \<=                { return LE; }
 ==                 { return EQ; }
