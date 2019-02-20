@@ -20,7 +20,7 @@ Grammar
    11     | IF '(' expr ')' stmt
    12     | IF '(' expr ')' stmt ELSE stmt
    13     | WHILE '(' expr ')' stmt
-   14     | FOR '(' ID '=' expr ';' expr ';' expr ')' stmt
+   14     | FOR '(' stmt expr ';' stmt ')' stmt
    15     | ID INC ';'
    16     | ID DEC ';'
    17     | ID INCX expr ';'
@@ -57,7 +57,7 @@ $end (0) 0
 '/' (47) 28
 ';' (59) 6 10 14 15 16 17 18 19
 '<' (60) 36
-'=' (61) 10 14
+'=' (61) 10
 '>' (62) 35
 '{' (123) 9
 '}' (125) 9
@@ -77,7 +77,7 @@ FOR (269) 14
 PRINT (270) 19
 BOOL_TYPE (271) 2
 INT_TYPE (272) 3
-ID (273) 6 10 14 15 16 17 18 23
+ID (273) 6 10 15 16 17 18 23
 VAL (274) 20
 IF_ALONE (275)
 INC (276) 15
@@ -168,7 +168,7 @@ State 5
 
 State 6
 
-   14 stmt: FOR . '(' ID '=' expr ';' expr ';' expr ')' stmt
+   14 stmt: FOR . '(' stmt expr ';' stmt ')' stmt
 
     '('  shift, and go to state 17
 
@@ -280,9 +280,16 @@ State 16
 
 State 17
 
-   14 stmt: FOR '(' . ID '=' expr ';' expr ';' expr ')' stmt
+   14 stmt: FOR '(' . stmt expr ';' stmt ')' stmt
 
-    ID  shift, and go to state 34
+    IF     shift, and go to state 4
+    WHILE  shift, and go to state 5
+    FOR    shift, and go to state 6
+    PRINT  shift, and go to state 7
+    ID     shift, and go to state 10
+    '{'    shift, and go to state 11
+
+    stmt  go to state 34
 
 
 State 18
@@ -505,9 +512,15 @@ State 33
 
 State 34
 
-   14 stmt: FOR '(' ID . '=' expr ';' expr ';' expr ')' stmt
+   14 stmt: FOR '(' stmt . expr ';' stmt ')' stmt
 
-    '='  shift, and go to state 59
+    FALSE  shift, and go to state 18
+    TRUE   shift, and go to state 19
+    ID     shift, and go to state 20
+    VAL    shift, and go to state 21
+    '('    shift, and go to state 22
+
+    expr  go to state 59
 
 
 State 35
@@ -863,15 +876,33 @@ State 58
 
 State 59
 
-   14 stmt: FOR '(' ID '=' . expr ';' expr ';' expr ')' stmt
+   14 stmt: FOR '(' stmt expr . ';' stmt ')' stmt
+   25 expr: expr . '+' expr
+   26     | expr . '-' expr
+   27     | expr . '*' expr
+   28     | expr . '/' expr
+   29     | expr . AND expr
+   30     | expr . OR expr
+   31     | expr . EQ expr
+   32     | expr . NE expr
+   33     | expr . GE expr
+   34     | expr . LE expr
+   35     | expr . '>' expr
+   36     | expr . '<' expr
 
-    FALSE  shift, and go to state 18
-    TRUE   shift, and go to state 19
-    ID     shift, and go to state 20
-    VAL    shift, and go to state 21
-    '('    shift, and go to state 22
-
-    expr  go to state 78
+    AND  shift, and go to state 36
+    OR   shift, and go to state 37
+    GE   shift, and go to state 38
+    LE   shift, and go to state 39
+    EQ   shift, and go to state 40
+    NE   shift, and go to state 41
+    '>'  shift, and go to state 42
+    '<'  shift, and go to state 43
+    '+'  shift, and go to state 44
+    '-'  shift, and go to state 45
+    '*'  shift, and go to state 46
+    '/'  shift, and go to state 47
+    ';'  shift, and go to state 78
 
 
 State 60
@@ -1207,33 +1238,16 @@ State 77
 
 State 78
 
-   14 stmt: FOR '(' ID '=' expr . ';' expr ';' expr ')' stmt
-   25 expr: expr . '+' expr
-   26     | expr . '-' expr
-   27     | expr . '*' expr
-   28     | expr . '/' expr
-   29     | expr . AND expr
-   30     | expr . OR expr
-   31     | expr . EQ expr
-   32     | expr . NE expr
-   33     | expr . GE expr
-   34     | expr . LE expr
-   35     | expr . '>' expr
-   36     | expr . '<' expr
+   14 stmt: FOR '(' stmt expr ';' . stmt ')' stmt
 
-    AND  shift, and go to state 36
-    OR   shift, and go to state 37
-    GE   shift, and go to state 38
-    LE   shift, and go to state 39
-    EQ   shift, and go to state 40
-    NE   shift, and go to state 41
-    '>'  shift, and go to state 42
-    '<'  shift, and go to state 43
-    '+'  shift, and go to state 44
-    '-'  shift, and go to state 45
-    '*'  shift, and go to state 46
-    '/'  shift, and go to state 47
-    ';'  shift, and go to state 80
+    IF     shift, and go to state 4
+    WHILE  shift, and go to state 5
+    FOR    shift, and go to state 6
+    PRINT  shift, and go to state 7
+    ID     shift, and go to state 10
+    '{'    shift, and go to state 11
+
+    stmt  go to state 80
 
 
 State 79
@@ -1252,15 +1266,9 @@ State 79
 
 State 80
 
-   14 stmt: FOR '(' ID '=' expr ';' . expr ';' expr ')' stmt
+   14 stmt: FOR '(' stmt expr ';' stmt . ')' stmt
 
-    FALSE  shift, and go to state 18
-    TRUE   shift, and go to state 19
-    ID     shift, and go to state 20
-    VAL    shift, and go to state 21
-    '('    shift, and go to state 22
-
-    expr  go to state 82
+    ')'  shift, and go to state 82
 
 
 State 81
@@ -1272,82 +1280,7 @@ State 81
 
 State 82
 
-   14 stmt: FOR '(' ID '=' expr ';' expr . ';' expr ')' stmt
-   25 expr: expr . '+' expr
-   26     | expr . '-' expr
-   27     | expr . '*' expr
-   28     | expr . '/' expr
-   29     | expr . AND expr
-   30     | expr . OR expr
-   31     | expr . EQ expr
-   32     | expr . NE expr
-   33     | expr . GE expr
-   34     | expr . LE expr
-   35     | expr . '>' expr
-   36     | expr . '<' expr
-
-    AND  shift, and go to state 36
-    OR   shift, and go to state 37
-    GE   shift, and go to state 38
-    LE   shift, and go to state 39
-    EQ   shift, and go to state 40
-    NE   shift, and go to state 41
-    '>'  shift, and go to state 42
-    '<'  shift, and go to state 43
-    '+'  shift, and go to state 44
-    '-'  shift, and go to state 45
-    '*'  shift, and go to state 46
-    '/'  shift, and go to state 47
-    ';'  shift, and go to state 83
-
-
-State 83
-
-   14 stmt: FOR '(' ID '=' expr ';' expr ';' . expr ')' stmt
-
-    FALSE  shift, and go to state 18
-    TRUE   shift, and go to state 19
-    ID     shift, and go to state 20
-    VAL    shift, and go to state 21
-    '('    shift, and go to state 22
-
-    expr  go to state 84
-
-
-State 84
-
-   14 stmt: FOR '(' ID '=' expr ';' expr ';' expr . ')' stmt
-   25 expr: expr . '+' expr
-   26     | expr . '-' expr
-   27     | expr . '*' expr
-   28     | expr . '/' expr
-   29     | expr . AND expr
-   30     | expr . OR expr
-   31     | expr . EQ expr
-   32     | expr . NE expr
-   33     | expr . GE expr
-   34     | expr . LE expr
-   35     | expr . '>' expr
-   36     | expr . '<' expr
-
-    AND  shift, and go to state 36
-    OR   shift, and go to state 37
-    GE   shift, and go to state 38
-    LE   shift, and go to state 39
-    EQ   shift, and go to state 40
-    NE   shift, and go to state 41
-    '>'  shift, and go to state 42
-    '<'  shift, and go to state 43
-    '+'  shift, and go to state 44
-    '-'  shift, and go to state 45
-    '*'  shift, and go to state 46
-    '/'  shift, and go to state 47
-    ')'  shift, and go to state 85
-
-
-State 85
-
-   14 stmt: FOR '(' ID '=' expr ';' expr ';' expr ')' . stmt
+   14 stmt: FOR '(' stmt expr ';' stmt ')' . stmt
 
     IF     shift, and go to state 4
     WHILE  shift, and go to state 5
@@ -1356,11 +1289,11 @@ State 85
     ID     shift, and go to state 10
     '{'    shift, and go to state 11
 
-    stmt  go to state 86
+    stmt  go to state 83
 
 
-State 86
+State 83
 
-   14 stmt: FOR '(' ID '=' expr ';' expr ';' expr ')' stmt .
+   14 stmt: FOR '(' stmt expr ';' stmt ')' stmt .
 
     $default  reduce using rule 14 (stmt)

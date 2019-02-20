@@ -114,12 +114,11 @@ void print_stmt(struct stmt *stmt, int indent) {
     case STMT_FOR:
       print_indent(indent);
       printf("for (");
-      printf("%s = ", string_int_rev(&global_ids, stmt->for_.id));
-      print_expr(stmt->for_.expr);
+      print_stmt(stmt->for_.init, indent + 1);
       printf(";\n");
       print_expr(stmt->for_.cond);
       printf(";\n");
-      print_expr(stmt->for_.expr1);
+      print_stmt(stmt->for_.incr, indent + 1);
       printf(") {\n");
       print_stmt(stmt->for_.body, indent + 1);
       print_indent(indent);
@@ -328,14 +327,12 @@ struct stmt* make_while(struct expr *e, struct stmt *body) {
   return r;
 }
 
-struct stmt* make_for(size_t id, struct expr *e, struct expr *c, struct expr *e1, struct stmt *body) {
-  make_assign(id, e);
+struct stmt* make_for(struct stmt *init, struct expr *cond, struct stmt *incr, struct stmt *body) {
   struct stmt* r = malloc(sizeof(struct stmt));
   r->type = STMT_FOR;
-  r->for_.id = id;
-  r->for_.expr = e;
-  r->for_.cond = c;
-  r->for_.expr1 = e1;
+  r->for_.init = init;
+  r->for_.cond = cond;
+  r->for_.incr = incr;
   r->for_.body = body;
   return r;
 }
@@ -381,8 +378,10 @@ void free_stmt(struct stmt *stmt) {
       break;
 
     case STMT_FOR:
+      free_stmt(stmt->for_.init);
       free_expr(stmt->for_.cond);
       free_stmt(stmt->for_.body);
+      free_stmt(stmt->for_.incr);
       break;
 
     case STMT_IF:
@@ -510,6 +509,8 @@ void codegen_stmt(struct stmt *stmt, LLVMModuleRef module, LLVMBuilderRef builde
       LLVMBasicBlockRef body_bb = LLVMAppendBasicBlock(func, "body");
       LLVMBasicBlockRef cont_bb = LLVMAppendBasicBlock(func, "cont");
 
+      codegen_stmt(stmt->for_.init, module, builder);
+
       LLVMBuildBr(builder, cond_bb);
 
       LLVMPositionBuilderAtEnd(builder, cond_bb);
@@ -518,7 +519,7 @@ void codegen_stmt(struct stmt *stmt, LLVMModuleRef module, LLVMBuilderRef builde
 
       LLVMPositionBuilderAtEnd(builder, body_bb);
       codegen_stmt(stmt->for_.body, module, builder);
-      codegen_expr(stmt->for_.expr1, module, builder);
+      codegen_stmt(stmt->for_.incr, module, builder);
       LLVMBuildBr(builder, cond_bb);
 
       LLVMPositionBuilderAtEnd(builder, cont_bb);

@@ -2,9 +2,8 @@ int x;
 int v;
 
 {
-    v = 5;
-    for (x = 1; x <= v; x = 5 + 4) {
+    v = 10;
+    for (x = 1; x <= v; x++;) {
         print x * x;
-        x = x + 1;
     }
 }
