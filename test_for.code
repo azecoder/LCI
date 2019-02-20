@@ -3,7 +3,9 @@ int v;
 
 {
     v = 10;
-    for (x = 1; x <= v; x++;) {
-        print x * x;
+    for (x = 1; x <= v; x++) {
+        if(x%2 == 1) {
+            print x * x;
+        }
     }
 }

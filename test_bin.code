@@ -9,4 +9,6 @@ int c;
     print c;
     c = a || b;
     print c;
+    a = c % 2;
+    print a;
 }

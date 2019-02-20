@@ -50,8 +50,12 @@
 %nonassoc ELSE
 %left GE LE EQ NE '>' '<'
 %left AND OR
-%left INC DEC INCX DECX
+%left INC DEC
+%left INCX DECX
+%left MODX
+%left MULX DIVX
 %left '+' '-'
+%left '%'
 %left '*' '/'
 
 %%
@@ -96,6 +100,16 @@ stmt: '{' stmts '}'                         { $$ = $2; }
       | ID DEC ';'                          { $$ = make_assign($1, binop(variable($1), '-', literal(1))); }
       | ID INCX expr ';'                    { $$ = make_assign($1, binop(variable($1), '+', $3)); }
       | ID DECX expr ';'                    { $$ = make_assign($1, binop(variable($1), '-', $3)); }
+      | ID MODX expr ';'                    { $$ = make_assign($1, binop(variable($1), '%', $3)); }
+      | ID MULX expr ';'                    { $$ = make_assign($1, binop(variable($1), '*', $3)); }
+      | ID DIVX expr ';'                    { $$ = make_assign($1, binop(variable($1), '/', $3)); }
+      | ID INC                              { $$ = make_assign($1, binop(variable($1), '+', literal(1))); }
+      | ID DEC                              { $$ = make_assign($1, binop(variable($1), '-', literal(1))); }
+      | ID INCX expr                        { $$ = make_assign($1, binop(variable($1), '+', $3)); }
+      | ID DECX expr                        { $$ = make_assign($1, binop(variable($1), '-', $3)); }
+      | ID MODX expr                        { $$ = make_assign($1, binop(variable($1), '%', $3)); }
+      | ID MULX expr                        { $$ = make_assign($1, binop(variable($1), '*', $3)); }
+      | ID DIVX expr                        { $$ = make_assign($1, binop(variable($1), '/', $3)); }
       | PRINT expr ';'                      { $$ = make_print($2); }
 
 expr: VAL             { $$ = literal($1); }
@@ -109,6 +123,7 @@ expr: VAL             { $$ = literal($1); }
       | expr '*' expr { $$ = binop($1, '*', $3); }
       | expr '/' expr { $$ = binop($1, '/', $3); }
 
+      | expr '%' expr { $$ = binop($1, '%', $3); }
       | expr AND expr { $$ = binop($1, AND, $3); }
       | expr OR  expr { $$ = binop($1, OR, $3); }
 

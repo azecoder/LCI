@@ -66,7 +66,10 @@ extern int yydebug;
     INC = 276,
     DEC = 277,
     INCX = 278,
-    DECX = 279
+    DECX = 279,
+    MODX = 280,
+    MULX = 281,
+    DIVX = 282
   };
 #endif
 /* Tokens.  */
@@ -92,6 +95,9 @@ extern int yydebug;
 #define DEC 277
 #define INCX 278
 #define DECX 279
+#define MODX 280
+#define MULX 281
+#define DIVX 282
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
@@ -111,7 +117,7 @@ union YYSTYPE
   } type;
   struct stmt *stmt;
 
-#line 115 "y.tab.h" /* yacc.c:1909  */
+#line 121 "y.tab.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

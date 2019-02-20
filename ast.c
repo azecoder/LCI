@@ -165,6 +165,7 @@ void emit_stack_machine(struct expr *expr) {
         case '*': printf("mul\n"); break;
         case '/': printf("div\n"); break;
 
+        case '%': printf("mod\n"); break;
         case AND: printf("and\n"); break;
         case OR:  printf("or\n"); break;
 
@@ -210,6 +211,7 @@ int emit_reg_machine(struct expr *expr) {
         case '*': printf("r%d = mul r%d, r%d\n", result_reg, lhs, rhs); break;
         case '/': printf("r%d = div r%d, r%d\n", result_reg, lhs, rhs); break;
 
+        case '%': printf("r%d = mod r%d, r%d\n", result_reg, lhs, rhs); break;
         case AND: printf("r%d = and r%d, r%d\n", result_reg, lhs, rhs); break;
         case OR:  printf("r%d = or r%d, r%d\n", result_reg, lhs, rhs); break;
 
@@ -249,6 +251,7 @@ enum value_type check_types(struct expr *expr) {
         case '-':
         case '*':
         case '/':
+        case '%':
           if (lhs == INTEGER && rhs == INTEGER)
             return INTEGER;
           else
@@ -444,6 +447,7 @@ LLVMValueRef codegen_expr(struct expr *expr, LLVMModuleRef module, LLVMBuilderRe
         case '*': return LLVMBuildMul(builder, lhs, rhs, "multmp");
         case '/': return LLVMBuildSDiv(builder, lhs, rhs, "divtmp");
 
+        case '%': return LLVMBuildURem(builder, lhs, rhs, "modtmp");
         case AND: return LLVMBuildAnd(builder, lhs, rhs, "andtmp");
         case OR:  return LLVMBuildOr(builder, lhs, rhs, "ortmp");
 
