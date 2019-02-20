@@ -16,6 +16,7 @@ ID       [A-Za-z][A-Za-z0-9]*
 if                        { return IF; }
 else                      { return ELSE; }
 while                     { return WHILE; }
+do                        { return DO; }
 for                       { return FOR; }
 print                     { return PRINT; }
 int                       { return INT_TYPE; }

@@ -43,6 +43,7 @@ enum stmt_type {
   STMT_ASSIGN,
   STMT_IF,
   STMT_WHILE,
+  STMT_DOWHILE,
   STMT_FOR,
   STMT_PRINT,
 };
@@ -64,7 +65,7 @@ struct stmt {
     struct {
       struct expr *cond;
       struct stmt *body;
-    } while_; // for type == STMT_WHILE
+    } while_, dowhile; // for type == STMT_WHILE, STMT_DOWHILE
     struct {
       struct stmt *init;
       struct expr *cond;
@@ -80,6 +81,7 @@ struct stmt {
 struct stmt* make_seq(struct stmt *fst, struct stmt *snd);
 struct stmt* make_assign(size_t id, struct expr *e);
 struct stmt* make_while(struct expr *e, struct stmt *body);
+struct stmt* make_dowhile(struct stmt *body, struct expr *e);
 struct stmt* make_for(struct stmt *init, struct expr *cond, struct stmt *incr, struct stmt *body);
 struct stmt* make_ifelse(struct expr *e, struct stmt *if_body, struct stmt *else_body);
 struct stmt* make_if(struct expr *e, struct stmt *body);

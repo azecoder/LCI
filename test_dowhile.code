@@ -1,0 +1,11 @@
+int x;
+int v;
+
+{
+    x = 1;
+    v = 128;
+    do {
+        x *= 2;
+        print x;
+    } while (x <= v);
+}

@@ -56,20 +56,21 @@ extern int yydebug;
     IF = 266,
     ELSE = 267,
     WHILE = 268,
-    FOR = 269,
-    PRINT = 270,
-    BOOL_TYPE = 271,
-    INT_TYPE = 272,
-    ID = 273,
-    VAL = 274,
-    IF_ALONE = 275,
-    INC = 276,
-    DEC = 277,
-    INCX = 278,
-    DECX = 279,
-    MODX = 280,
-    MULX = 281,
-    DIVX = 282
+    DO = 269,
+    FOR = 270,
+    PRINT = 271,
+    BOOL_TYPE = 272,
+    INT_TYPE = 273,
+    ID = 274,
+    VAL = 275,
+    IF_ALONE = 276,
+    INC = 277,
+    DEC = 278,
+    INCX = 279,
+    DECX = 280,
+    MODX = 281,
+    MULX = 282,
+    DIVX = 283
   };
 #endif
 /* Tokens.  */
@@ -84,20 +85,21 @@ extern int yydebug;
 #define IF 266
 #define ELSE 267
 #define WHILE 268
-#define FOR 269
-#define PRINT 270
-#define BOOL_TYPE 271
-#define INT_TYPE 272
-#define ID 273
-#define VAL 274
-#define IF_ALONE 275
-#define INC 276
-#define DEC 277
-#define INCX 278
-#define DECX 279
-#define MODX 280
-#define MULX 281
-#define DIVX 282
+#define DO 269
+#define FOR 270
+#define PRINT 271
+#define BOOL_TYPE 272
+#define INT_TYPE 273
+#define ID 274
+#define VAL 275
+#define IF_ALONE 276
+#define INC 277
+#define DEC 278
+#define INCX 279
+#define DECX 280
+#define MODX 281
+#define MULX 282
+#define DIVX 283
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
@@ -117,7 +119,7 @@ union YYSTYPE
   } type;
   struct stmt *stmt;
 
-#line 121 "y.tab.h" /* yacc.c:1909  */
+#line 123 "y.tab.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

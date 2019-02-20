@@ -111,14 +111,26 @@ void print_stmt(struct stmt *stmt, int indent) {
       printf("}\n");
       break;
 
+    case STMT_DOWHILE:
+      print_indent(indent);
+      printf("do {\n");
+      print_stmt(stmt->dowhile.body, indent + 1);
+      print_indent(indent);
+      printf("} while (");
+      print_expr(stmt->dowhile.cond);
+      printf(");\n");
+      break;
+
     case STMT_FOR:
       print_indent(indent);
       printf("for (");
       print_stmt(stmt->for_.init, indent + 1);
+      print_indent(indent);
       printf(";\n");
       print_expr(stmt->for_.cond);
       printf(";\n");
       print_stmt(stmt->for_.incr, indent + 1);
+      print_indent(indent);
       printf(") {\n");
       print_stmt(stmt->for_.body, indent + 1);
       print_indent(indent);
@@ -330,6 +342,14 @@ struct stmt* make_while(struct expr *e, struct stmt *body) {
   return r;
 }
 
+struct stmt* make_dowhile(struct stmt *body, struct expr *e) {
+  struct stmt* r = malloc(sizeof(struct stmt));
+  r->type = STMT_DOWHILE;
+  r->dowhile.cond = e;
+  r->dowhile.body = body;
+  return r;
+}
+
 struct stmt* make_for(struct stmt *init, struct expr *cond, struct stmt *incr, struct stmt *body) {
   struct stmt* r = malloc(sizeof(struct stmt));
   r->type = STMT_FOR;
@@ -380,6 +400,11 @@ void free_stmt(struct stmt *stmt) {
       free_stmt(stmt->while_.body);
       break;
 
+    case STMT_DOWHILE:
+      free_expr(stmt->dowhile.cond);
+      free_stmt(stmt->dowhile.body);
+      break;
+
     case STMT_FOR:
       free_stmt(stmt->for_.init);
       free_expr(stmt->for_.cond);
@@ -414,8 +439,14 @@ int valid_stmt(struct stmt *stmt) {
     case STMT_WHILE:
       return check_types(stmt->while_.cond) == BOOLEAN && valid_stmt(stmt->while_.body);
 
+    case STMT_DOWHILE:
+      return check_types(stmt->dowhile.cond) == BOOLEAN && valid_stmt(stmt->dowhile.body);
+
     case STMT_FOR:
-      return check_types(stmt->for_.cond) == BOOLEAN && valid_stmt(stmt->for_.body);
+      return check_types(stmt->for_.cond) == BOOLEAN 
+                && valid_stmt(stmt->for_.init)
+                && valid_stmt(stmt->for_.body)
+                && valid_stmt(stmt->for_.incr);
 
     case STMT_IF:
       return
@@ -506,7 +537,6 @@ void codegen_stmt(struct stmt *stmt, LLVMModuleRef module, LLVMBuilderRef builde
       break;
     }
 
-    // I have a bug in this case.. After checking condition must calculate body and last expr
     case STMT_FOR: {
       LLVMValueRef func = LLVMGetBasicBlockParent(LLVMGetInsertBlock(builder));
       LLVMBasicBlockRef cond_bb = LLVMAppendBasicBlock(func, "cond");
@@ -524,6 +554,26 @@ void codegen_stmt(struct stmt *stmt, LLVMModuleRef module, LLVMBuilderRef builde
       LLVMPositionBuilderAtEnd(builder, body_bb);
       codegen_stmt(stmt->for_.body, module, builder);
       codegen_stmt(stmt->for_.incr, module, builder);
+      LLVMBuildBr(builder, cond_bb);
+
+      LLVMPositionBuilderAtEnd(builder, cont_bb);
+      break;
+    }
+
+    case STMT_DOWHILE: {
+      LLVMValueRef func = LLVMGetBasicBlockParent(LLVMGetInsertBlock(builder));
+      LLVMBasicBlockRef cond_bb = LLVMAppendBasicBlock(func, "cond");
+      LLVMBasicBlockRef body_bb = LLVMAppendBasicBlock(func, "body");
+      LLVMBasicBlockRef cont_bb = LLVMAppendBasicBlock(func, "cont");
+
+      LLVMBuildBr(builder, cond_bb);
+
+      LLVMPositionBuilderAtEnd(builder, cond_bb);
+      LLVMValueRef cond = codegen_expr(stmt->dowhile.cond, module, builder);
+      LLVMBuildCondBr(builder, cond, body_bb, cont_bb);
+
+      LLVMPositionBuilderAtEnd(builder, body_bb);
+      codegen_stmt(stmt->dowhile.body, module, builder);
       LLVMBuildBr(builder, cond_bb);
 
       LLVMPositionBuilderAtEnd(builder, cont_bb);

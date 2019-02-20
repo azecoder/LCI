@@ -37,7 +37,7 @@
 %token AND OR
 %token GE LE EQ NE
 %token FALSE TRUE
-%token IF ELSE WHILE FOR PRINT
+%token IF ELSE WHILE DO FOR PRINT
 %token BOOL_TYPE INT_TYPE
 %token <id> ID
 %token <value> VAL
@@ -96,6 +96,7 @@ stmt: '{' stmts '}'                         { $$ = $2; }
       | IF '(' expr ')' stmt ELSE stmt      { $$ = make_ifelse($3, $5, $7); }
       | WHILE '(' expr ')' stmt             { $$ = make_while($3, $5); }
       | FOR '(' stmt expr ';' stmt ')' stmt { $$ = make_for($3, $4, $6, $8); }
+      | DO stmt WHILE '(' expr ')' ';'      { $$ = make_dowhile($2, $5); }
       | ID INC ';'                          { $$ = make_assign($1, binop(variable($1), '+', literal(1))); }
       | ID DEC ';'                          { $$ = make_assign($1, binop(variable($1), '-', literal(1))); }
       | ID INCX expr ';'                    { $$ = make_assign($1, binop(variable($1), '+', $3)); }
