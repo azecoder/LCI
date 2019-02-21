@@ -61,16 +61,18 @@ extern int yydebug;
     PRINT = 271,
     BOOL_TYPE = 272,
     INT_TYPE = 273,
-    ID = 274,
-    VAL = 275,
-    IF_ALONE = 276,
-    INC = 277,
-    DEC = 278,
-    INCX = 279,
-    DECX = 280,
-    MODX = 281,
-    MULX = 282,
-    DIVX = 283
+    FLOAT_TYPE = 274,
+    ID = 275,
+    VAL = 276,
+    VAL2 = 277,
+    IF_ALONE = 278,
+    INC = 279,
+    DEC = 280,
+    INCX = 281,
+    DECX = 282,
+    MODX = 283,
+    MULX = 284,
+    DIVX = 285
   };
 #endif
 /* Tokens.  */
@@ -90,16 +92,18 @@ extern int yydebug;
 #define PRINT 271
 #define BOOL_TYPE 272
 #define INT_TYPE 273
-#define ID 274
-#define VAL 275
-#define IF_ALONE 276
-#define INC 277
-#define DEC 278
-#define INCX 279
-#define DECX 280
-#define MODX 281
-#define MULX 282
-#define DIVX 283
+#define FLOAT_TYPE 274
+#define ID 275
+#define VAL 276
+#define VAL2 277
+#define IF_ALONE 278
+#define INC 279
+#define DEC 280
+#define INCX 281
+#define DECX 282
+#define MODX 283
+#define MULX 284
+#define DIVX 285
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
@@ -116,10 +120,11 @@ union YYSTYPE
     UNTYPED = 0,
     INTEGER = 1,
     BOOLEAN = 2,
+    FLOAT = 3,
   } type;
   struct stmt *stmt;
 
-#line 123 "y.tab.h" /* yacc.c:1909  */
+#line 128 "y.tab.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

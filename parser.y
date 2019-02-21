@@ -30,6 +30,7 @@
     UNTYPED = 0,
     INTEGER = 1,
     BOOLEAN = 2,
+    FLOAT = 3,
   } type;
   struct stmt *stmt;
 }
@@ -38,9 +39,10 @@
 %token GE LE EQ NE
 %token FALSE TRUE
 %token IF ELSE WHILE DO FOR PRINT
-%token BOOL_TYPE INT_TYPE
+%token BOOL_TYPE INT_TYPE FLOAT_TYPE
 %token <id> ID
 %token <value> VAL
+%token <value> VAL2
 %type  <expr>  expr
 %type  <stmt>  stmt
 %type  <stmt>  stmts
@@ -72,8 +74,9 @@ program: decls stmt {
                       free_stmt($2);
                     }
 
-type: BOOL_TYPE   { $$ = BOOLEAN; }
-      | INT_TYPE  { $$ = INTEGER; }
+type: BOOL_TYPE       { $$ = BOOLEAN; }
+      | INT_TYPE      { $$ = INTEGER; }
+      | FLOAT_TYPE    { $$ = FLOAT; }
 
 decls: decls decl | ;
 decl: type ID ';'     {
@@ -81,7 +84,14 @@ decl: type ID ';'     {
                           printf("Multiple declarations for identifier %s\n", string_int_rev(&global_ids, $2));
                           exit(0);
                         } else {
-                          LLVMTypeRef t = $1 == BOOLEAN ? LLVMInt1Type() : LLVMInt32Type();
+                          LLVMTypeRef t;
+                          if($1 == BOOLEAN) {
+                            t = LLVMInt1Type();
+                          } else if($1 == INTEGER) {
+                            t = LLVMInt32Type();
+                          } else if($1 == FLOAT) {
+                            t = LLVMFloatType();
+                          }
                           LLVMValueRef p = LLVMBuildAlloca(builder, t, string_int_rev(&global_ids, $2));
                           vector_set(&global_types, $2, p);
                         }
@@ -113,28 +123,29 @@ stmt: '{' stmts '}'                         { $$ = $2; }
       | ID DIVX expr                        { $$ = make_assign($1, binop(variable($1), '/', $3)); }
       | PRINT expr ';'                      { $$ = make_print($2); }
 
-expr: VAL             { $$ = literal($1); }
-      | FALSE         { $$ = bool_lit(0); }
-      | TRUE          { $$ = bool_lit(1); }
-      | ID            { $$ = variable($1); }
-      | '(' expr ')'  { $$ = $2; }
+expr: VAL                                   { $$ = literal($1); }
+      | VAL2                                { $$ = decimal($1); }
+      | FALSE                               { $$ = bool_lit(0); }
+      | TRUE                                { $$ = bool_lit(1); }
+      | ID                                  { $$ = variable($1); }
+      | '(' expr ')'                        { $$ = $2; }
 
-      | expr '+' expr { $$ = binop($1, '+', $3); }
-      | expr '-' expr { $$ = binop($1, '-', $3); }
-      | expr '*' expr { $$ = binop($1, '*', $3); }
-      | expr '/' expr { $$ = binop($1, '/', $3); }
+      | expr '+' expr                       { $$ = binop($1, '+', $3); }
+      | expr '-' expr                       { $$ = binop($1, '-', $3); }
+      | expr '*' expr                       { $$ = binop($1, '*', $3); }
+      | expr '/' expr                       { $$ = binop($1, '/', $3); }
 
-      | expr '%' expr { $$ = binop($1, '%', $3); }
-      | expr AND expr { $$ = binop($1, AND, $3); }
-      | expr OR  expr { $$ = binop($1, OR, $3); }
+      | expr '%' expr                       { $$ = binop($1, '%', $3); }
+      | expr AND expr                       { $$ = binop($1, AND, $3); }
+      | expr OR  expr                       { $$ = binop($1, OR, $3); }
 
-      | expr EQ  expr { $$ = binop($1, EQ, $3); }
-      | expr NE  expr { $$ = binop($1, NE, $3); }
+      | expr EQ  expr                       { $$ = binop($1, EQ, $3); }
+      | expr NE  expr                       { $$ = binop($1, NE, $3); }
 
-      | expr GE  expr { $$ = binop($1, GE, $3); }
-      | expr LE  expr { $$ = binop($1, LE, $3); }
-      | expr '>' expr { $$ = binop($1, '>', $3); }
-      | expr '<' expr { $$ = binop($1, '<', $3); }
+      | expr GE  expr                       { $$ = binop($1, GE, $3); }
+      | expr LE  expr                       { $$ = binop($1, LE, $3); }
+      | expr '>' expr                       { $$ = binop($1, '>', $3); }
+      | expr '<' expr                       { $$ = binop($1, '<', $3); }
 
       ;
 
@@ -188,6 +199,11 @@ int main(void)
     LLVMTypeRef print_i1_args[] = { LLVMInt1Type() };
     LLVMAddFunction(module, "print_i1",
     LLVMFunctionType(LLVMVoidType(), print_i1_args, 1, 0));
+
+    // print_f32
+    LLVMTypeRef print_f32_args[] = { LLVMFloatType() };
+    LLVMAddFunction(module, "print_f32",
+    LLVMFunctionType(LLVMVoidType(), print_f32_args, 1, 0));
 
     // create "main" function
     LLVMTypeRef main_type = LLVMFunctionType(LLVMVoidType(), NULL, 0, 0);

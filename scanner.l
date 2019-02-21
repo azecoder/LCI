@@ -20,10 +20,12 @@ do                        { return DO; }
 for                       { return FOR; }
 print                     { return PRINT; }
 int                       { return INT_TYPE; }
+float                     { return FLOAT_TYPE; }
 bool                      { return BOOL_TYPE; }
 true                      { return TRUE; }
 false                     { return FALSE; }
 {DIGIT}+                  { yylval.value = atoi(yytext); return VAL; }
+{DIGIT}+.{DIGIT}+         { yylval.value = atof(yytext); return VAL2; }
 {ID}                      { yylval.id = string_int_get(&global_ids, yytext); return ID; }
 [ \t\r\n]+                /* discard whitespace */
 [-*/+%><=;\{\}\(\)]       { return *yytext; }

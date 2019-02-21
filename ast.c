@@ -9,6 +9,7 @@ const char *type_name(enum value_type t) {
   switch (t) {
     case INTEGER: return "int";
     case BOOLEAN: return "bool";
+    case FLOAT: return "float";
     case ERROR: return "error";
     default: return "not-a-type";
   }
@@ -25,6 +26,13 @@ struct expr* literal(int v) {
   struct expr* r = malloc(sizeof(struct expr));
   r->type = LITERAL;
   r->value = v;
+  return r;
+}
+
+struct expr* decimal(float v) {
+  struct expr* r = malloc(sizeof(struct expr));
+  r->type = DECIMAL;
+  r->value_dec = v;
   return r;
 }
 
@@ -52,6 +60,10 @@ void print_expr(struct expr *expr) {
 
     case LITERAL:
       printf("%d", expr->value);
+      break;
+
+    case DECIMAL:
+      printf("%f", expr->value_dec * 1.0);
       break;
 
     case VARIABLE:
@@ -164,6 +176,10 @@ void emit_stack_machine(struct expr *expr) {
       printf("load_imm %d\n", expr->value);
       break;
 
+    case DECIMAL:
+      printf("load_fmm %f\n", expr->value_dec * 1.0);
+      break;
+
     case VARIABLE:
       printf("load_mem %zu # %s\n", expr->id, string_int_rev(&global_ids, expr->id));
       break;
@@ -210,6 +226,10 @@ int emit_reg_machine(struct expr *expr) {
       printf("r%d = %d\n", result_reg, expr->value);
       break;
 
+    case DECIMAL:
+      printf("r%d = %f\n", result_reg, expr->value_dec * 1.0);
+      break;
+
     case VARIABLE:
       printf("r%d = load %zu # %s\n", result_reg, expr->id, string_int_rev(&global_ids, expr->id));
       break;
@@ -249,6 +269,9 @@ enum value_type check_types(struct expr *expr) {
     case LITERAL:
       return INTEGER;
 
+    case DECIMAL:
+      return FLOAT;
+
     case VARIABLE: {
       LLVMValueRef ptr = vector_get(&global_types, expr->id);
       LLVMTypeRef t = LLVMGetElementType(LLVMTypeOf(ptr));
@@ -266,6 +289,8 @@ enum value_type check_types(struct expr *expr) {
         case '%':
           if (lhs == INTEGER && rhs == INTEGER)
             return INTEGER;
+          else if (lhs == FLOAT && rhs == FLOAT)
+            return FLOAT;
           else
             return ERROR;
 
@@ -291,6 +316,8 @@ enum value_type check_types(struct expr *expr) {
         case '<':
           if (lhs == INTEGER && rhs == INTEGER)
             return BOOLEAN;
+          else if (lhs == FLOAT && rhs == FLOAT)
+            return BOOLEAN;
           else
             return ERROR;
 
@@ -307,6 +334,7 @@ void free_expr(struct expr *expr) {
     case BOOL_LIT:
     case LITERAL:
     case VARIABLE:
+    case DECIMAL:
       free(expr);
       break;
 
@@ -466,6 +494,9 @@ LLVMValueRef codegen_expr(struct expr *expr, LLVMModuleRef module, LLVMBuilderRe
     case LITERAL:
       return LLVMConstInt(LLVMInt32Type(), expr->value, 0);
 
+    case DECIMAL:
+      return LLVMConstReal(LLVMFloatType(), expr->value_dec * 1.0);
+
     case VARIABLE:
       return LLVMBuildLoad(builder, vector_get(&global_types, expr->id), "loadtmp");
 
@@ -511,7 +542,14 @@ void codegen_stmt(struct stmt *stmt, LLVMModuleRef module, LLVMBuilderRef builde
 
     case STMT_PRINT: {
       enum value_type arg_type = check_types(stmt->print.expr);
-      LLVMValueRef print_fn = LLVMGetNamedFunction(module, arg_type == BOOLEAN ? "print_i1" : "print_i32");
+      LLVMValueRef print_fn;
+      if(arg_type == BOOLEAN) {
+        print_fn = LLVMGetNamedFunction(module, "print_i1");
+      } else if(arg_type == INTEGER) { 
+        print_fn = LLVMGetNamedFunction(module, "print_i32");
+      } else { 
+        print_fn = LLVMGetNamedFunction(module,  "print_f32");
+      }
       LLVMValueRef args[] = { codegen_expr(stmt->print.expr, module, builder) };
       LLVMBuildCall(builder, print_fn, args, 1, "");
       break;

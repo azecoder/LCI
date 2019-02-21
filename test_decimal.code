@@ -1,0 +1,6 @@
+float x;
+
+{
+    x = 25.76;
+    print x;
+}

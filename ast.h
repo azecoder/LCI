@@ -8,6 +8,7 @@ const char *type_name(enum value_type t);
 enum expr_type {
   BOOL_LIT,
   LITERAL,
+  DECIMAL,
   VARIABLE,
   BIN_OP,
 };
@@ -16,6 +17,7 @@ struct expr {
   enum expr_type type;
   union {
     int value; // for type == LITERAL || type == BOOL_LIT
+    int value_dec; // for type == DECIMAL
     size_t id; // for type == VARIABLE
     struct {
       struct expr *lhs;
@@ -27,6 +29,7 @@ struct expr {
 
 struct expr* bool_lit(int v);
 struct expr* literal(int v);
+struct expr* decimal(float v);
 struct expr* variable(size_t id);
 struct expr* binop(struct expr *lhs, int op, struct expr *rhs);
 
